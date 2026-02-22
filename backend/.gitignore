@@ -1,0 +1,8 @@
+# Dependencies
+node_modules/
+
+# Environment variables (CRITICAL: Keeps your API keys safe)
+.env
+
+# User-uploaded files (Keeps your repo lightweight)
+uploads/
