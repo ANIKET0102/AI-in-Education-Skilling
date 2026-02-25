@@ -1,32 +1,23 @@
-const multer = require("multer");
-const path = require("path");
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
 
-// Set storage engine
+// This automatically creates the 'uploads' folder if it is missing!
+const uploadDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadDir)) {
+fs.mkdirSync(uploadDir);
+}
+
 const storage = multer.diskStorage({
-  destination: "./uploads/",
-  filename: function (req, file, cb) {
-    // Save file as: subjectID-timestamp.pdf
-    cb(
-      null,
-      file.fieldname + "-" + Date.now() + path.extname(file.originalname),
-    );
-  },
+destination: function (req, file, cb) {
+cb(null, 'uploads/');
+},
+filename: function (req, file, cb) {
+// Adds a timestamp to the file name so you can upload multiple files with the same name
+cb(null, Date.now() + '-' + file.originalname);
+}
 });
 
-// Initialize upload
-const upload = multer({
-  storage: storage,
-  fileFilter: function (req, file, cb) {
-    const filetypes = /pdf/;
-    const extname = filetypes.test(
-      path.extname(file.originalname).toLowerCase(),
-    );
-    if (extname) {
-      return cb(null, true);
-    } else {
-      cb("Error: PDFs Only!");
-    }
-  },
-});
+const upload = multer({ storage: storage });
 
 module.exports = upload;

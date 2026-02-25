@@ -1,33 +1,39 @@
 import { useState } from "react";
 import { Send, Sparkles, BookOpen, ChevronLeft, Loader2 } from "lucide-react";
-import { Link } from "react-router-dom";
-import { sendChatMessage } from "../services/api";
+import { Link, useLocation } from "react-router-dom";
+import { sendChatMessage, generateQuiz } from "../services/api";
 
 export default function StudyLab() {
+  // 1. Grab the subject FIRST
+  const location = useLocation();
+  const subject = location.state?.subject;
+
+  // 2. NOW you can use it in your state!
   const [messages, setMessages] = useState([
     {
       role: "ai",
-      text: "Hello Aniket! I've analyzed your Data Structures notes. Which concept should we master today?",
+      text: `Hello Aniket! Let's master ${subject?.name || "this subject"} together. What concept should we focus on?`,
     },
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+
+  // Convert the file path to a URL
+  const pdfUrl = subject?.pdfPath
+    ? `http://localhost:5000/${subject.pdfPath.replace(/\\/g, "/")}`
+    : null;
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
 
     const userText = input;
 
-    // 1. Instantly show your message
     setMessages((prev) => [...prev, { role: "user", text: userText }]);
     setInput("");
-    setIsTyping(true); // Show "AI is thinking..."
+    setIsTyping(true);
 
     try {
-      // 2. Send it to the backend
-      const response = await sendChatMessage(userText);
-
-      // 3. Show the AI's response
+      const response = await sendChatMessage(userText, subject?.pdfPath);
       setMessages((prev) => [
         ...prev,
         { role: "ai", text: response.data.text },
@@ -42,7 +48,33 @@ export default function StudyLab() {
         },
       ]);
     } finally {
-      setIsTyping(false); // Hide the loading animation
+      setIsTyping(false);
+    }
+  };
+
+  const handleGenerateQuiz = async () => {
+    setIsTyping(true);
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", text: "Generate a quiz for me!" },
+    ]);
+
+    try {
+      const response = await generateQuiz(subject?.pdfPath);
+
+      // Add a special "quiz" type message to our chat
+      setMessages((prev) => [
+        ...prev,
+        { role: "ai", type: "quiz", data: response.data.quiz },
+      ]);
+    } catch (err) {
+      console.error("Quiz Error:", err);
+      setMessages((prev) => [
+        ...prev,
+        { role: "ai", text: "Failed to generate the quiz. Check the console!" },
+      ]);
+    } finally {
+      setIsTyping(false);
     }
   };
 
@@ -59,10 +91,16 @@ export default function StudyLab() {
           </Link>
           <h1 className="text-xl font-bold">
             Study Lab:{" "}
-            <span className="text-brand-accent">Data Structures</span>
+            <span className="text-brand-accent">
+              {subject?.name || "General"}
+            </span>
           </h1>
         </div>
-        <button className="flex items-center gap-2 bg-brand-accent/10 text-brand-accent px-4 py-2 rounded-lg border border-brand-accent/20 hover:bg-brand-accent/20 transition text-sm">
+        <button
+          onClick={handleGenerateQuiz}
+          disabled={isTyping || !pdfUrl}
+          className="flex items-center gap-2 bg-brand-accent/10 text-brand-accent px-4 py-2 rounded-lg border border-brand-accent/20 hover:bg-brand-accent/20 transition text-sm disabled:opacity-50"
+        >
           <Sparkles size={16} />
           Generate Quiz
         </button>
@@ -71,10 +109,19 @@ export default function StudyLab() {
       {/* Main Split View */}
       <div className="flex flex-1 gap-6 overflow-hidden">
         {/* Left Side: Content Viewer */}
-        <div className="hidden lg:flex flex-1 bg-slate-800/30 border border-slate-800 rounded-2xl flex-col items-center justify-center text-slate-500">
-          <BookOpen size={48} className="mb-4 opacity-20" />
-          <p>Document Viewer / Concept Summary</p>
-          <p className="text-xs mt-2 italic">PDF Preview will appear here</p>
+        <div className="hidden lg:flex flex-1 bg-slate-800/30 border border-slate-800 rounded-2xl overflow-hidden flex-col">
+          {pdfUrl ? (
+            <iframe
+              src={pdfUrl}
+              className="w-full h-full border-0 bg-white"
+              title="PDF Viewer"
+            />
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-slate-500">
+              <BookOpen size={48} className="mb-4 opacity-20" />
+              <p>No document uploaded for {subject?.name || "this subject"}</p>
+            </div>
+          )}
         </div>
 
         {/* Right Side: AI Coach Chat */}
@@ -88,22 +135,46 @@ export default function StudyLab() {
 
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            
+            {/* --- REPLACED MAP FUNCTION IS HERE --- */}
             {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[85%] p-3 rounded-2xl text-sm ${
-                    msg.role === "user"
-                      ? "bg-brand-accent text-white rounded-tr-none"
-                      : "bg-slate-800 text-slate-200 rounded-tl-none border border-slate-700"
+              <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${
+                    msg.role === "user" ? "bg-brand-accent text-white rounded-tr-none" : "bg-slate-800 text-slate-200 rounded-tl-none border border-slate-700"
                   }`}
                 >
-                  {msg.text}
+                  {/* Standard Text Message */}
+                  {!msg.type && msg.text}
+
+                  {/* Special Quiz Message */}
+                  {msg.type === "quiz" && (
+                    <div className="space-y-4">
+                      <p className="font-bold text-brand-accent border-b border-slate-700 pb-2 mb-3">🎯 Knowledge Check</p>
+                      {msg.data.map((q, qIdx) => (
+                        <div key={qIdx} className="bg-slate-900/50 p-3 rounded-xl border border-slate-700/50">
+                          <p className="font-medium text-slate-200 mb-2">{qIdx + 1}. {q.question}</p>
+                          <div className="space-y-2">
+                            {q.options.map((opt, oIdx) => (
+                              <button key={oIdx} className="w-full text-left p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-xs border border-slate-700">
+                                {opt}
+                              </button>
+                            ))}
+                          </div>
+                          <details className="mt-3 text-xs">
+                            <summary className="cursor-pointer text-brand-accent font-medium hover:text-blue-400">View Answer</summary>
+                            <div className="mt-2 p-2 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400">
+                              <span className="font-bold">Answer:</span> {q.answer}
+                              <p className="mt-1 text-slate-400">{q.explanation}</p>
+                            </div>
+                          </details>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
+            {/* --- END OF REPLACED SECTION --- */}
 
             {/* Typing Indicator */}
             {isTyping && (

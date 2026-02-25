@@ -11,4 +11,6 @@ export const createSubject = (formData) =>
   });
 
 // Chat API call to connect to your Gemini backend
-export const sendChatMessage = (message) => API.post("/chat", { message });
+export const sendChatMessage = (message, pdfPath) => API.post("/chat", { message, pdfPath });
+
+export const generateQuiz = (pdfPath) => API.post("/chat/quiz", { pdfPath });

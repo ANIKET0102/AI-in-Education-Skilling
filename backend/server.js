@@ -8,14 +8,19 @@ app.use(cors());
 const PORT = process.env.PORT || 5000;
 
 const subjectRoutes = require("./routes/subjectRoutes");
-const chatRoutes = require('./routes/chatRoutes');
+const chatRoutes = require("./routes/chatRoutes");
 
 // Middleware
 app.use(cors());
+const path = require("path");
+
+// This explicitly allows the frontend to view files inside the 'uploads' folder
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 app.use(express.json());
 
 app.use("/api/subjects", subjectRoutes);
-app.use('/api/chat', chatRoutes);
+app.use("/api/chat", chatRoutes);
 
 console.log("DEBUG: Connection String is ->", process.env.MONGO_URI);
 
