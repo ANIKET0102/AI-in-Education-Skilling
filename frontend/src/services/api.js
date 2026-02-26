@@ -14,3 +14,9 @@ export const createSubject = (formData) =>
 export const sendChatMessage = (message, pdfPath) => API.post("/chat", { message, pdfPath });
 
 export const generateQuiz = (pdfPath) => API.post("/chat/quiz", { pdfPath });
+
+export const fetchStats = () => API.get("/stats");
+export const incrementConcepts = () => API.put("/stats/master-concept");
+export const saveChatHistory = (subjectId, messages) => API.put(`/subjects/${subjectId}/messages`, { messages });
+export const addStudyTime = (hours) => API.put("/stats/add-time", { hours });
+export const generatePlanner = (subjects) => API.post("/chat/planner", { subjects });

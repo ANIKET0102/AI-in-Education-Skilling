@@ -21,6 +21,8 @@ app.use(express.json());
 
 app.use("/api/subjects", subjectRoutes);
 app.use("/api/chat", chatRoutes);
+app.use('/api/stats', require('./routes/statRoutes'));
+
 
 console.log("DEBUG: Connection String is ->", process.env.MONGO_URI);
 

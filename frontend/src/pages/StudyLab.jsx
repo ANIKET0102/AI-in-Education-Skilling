@@ -1,51 +1,83 @@
-import { useState } from "react";
+import confetti from "canvas-confetti";
+import toast from "react-hot-toast";
+import { useState, useEffect } from "react";
 import { Send, Sparkles, BookOpen, ChevronLeft, Loader2 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
-import { sendChatMessage, generateQuiz } from "../services/api";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  sendChatMessage,
+  generateQuiz,
+  incrementConcepts,
+  saveChatHistory,
+} from "../services/api";
 
 export default function StudyLab() {
-  // 1. Grab the subject FIRST
   const location = useLocation();
   const subject = location.state?.subject;
+  const navigate = useNavigate();
+  const [startTime] = useState(Date.now()); // Starts the clock the exact millisecond the page loads
 
-  // 2. NOW you can use it in your state!
-  const [messages, setMessages] = useState([
-    {
-      role: "ai",
-      text: `Hello Aniket! Let's master ${subject?.name || "this subject"} together. What concept should we focus on?`,
-    },
-  ]);
+  // 1. Load history if it exists, otherwise show the default greeting
+  const [messages, setMessages] = useState(() => {
+    if (subject?.messages && subject.messages.length > 0) {
+      return subject.messages;
+    }
+    return [
+      {
+        role: "ai",
+        text: `Hello Aniket! Let's master ${subject?.name || "this subject"} together. What concept should we focus on?`,
+      },
+    ];
+  });
+
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
-  // Convert the file path to a URL
   const pdfUrl = subject?.pdfPath
     ? `http://localhost:5000/${subject.pdfPath.replace(/\\/g, "/")}`
     : null;
+
+  // 2. Helper function to save messages to the database silently
+  const updateHistory = async (newMessagesArray) => {
+    if (subject?._id) {
+      try {
+        await saveChatHistory(subject._id, newMessagesArray);
+      } catch (err) {
+        console.error("Failed to save chat history:", err);
+      }
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
 
     const userText = input;
 
-    setMessages((prev) => [...prev, { role: "user", text: userText }]);
+    // Create the new array with the user's message
+    const newMessages = [...messages, { role: "user", text: userText }];
+    setMessages(newMessages);
     setInput("");
     setIsTyping(true);
 
+    // Save the user's message to the DB immediately
+    updateHistory(newMessages);
+
     try {
       const response = await sendChatMessage(userText, subject?.pdfPath);
-      setMessages((prev) => [
-        ...prev,
+
+      // Create the final array with the AI's response
+      const finalMessages = [
+        ...newMessages,
         { role: "ai", text: response.data.text },
-      ]);
+      ];
+      setMessages(finalMessages);
+
+      // Save the AI's response to the DB
+      updateHistory(finalMessages);
     } catch (err) {
       console.error("Chat Error:", err);
       setMessages((prev) => [
         ...prev,
-        {
-          role: "ai",
-          text: "Sorry, my brain is disconnected right now. Check your terminal!",
-        },
+        { role: "ai", text: "Sorry, my brain is disconnected right now." },
       ]);
     } finally {
       setIsTyping(false);
@@ -54,28 +86,67 @@ export default function StudyLab() {
 
   const handleGenerateQuiz = async () => {
     setIsTyping(true);
-    setMessages((prev) => [
-      ...prev,
+
+    const newMessages = [
+      ...messages,
       { role: "user", text: "Generate a quiz for me!" },
-    ]);
+    ];
+    setMessages(newMessages);
+    updateHistory(newMessages);
 
     try {
       const response = await generateQuiz(subject?.pdfPath);
 
-      // Add a special "quiz" type message to our chat
-      setMessages((prev) => [
-        ...prev,
+      const finalMessages = [
+        ...newMessages,
         { role: "ai", type: "quiz", data: response.data.quiz },
-      ]);
+      ];
+      setMessages(finalMessages);
+      updateHistory(finalMessages);
+
+      // 🚀 THE LEVEL UP TRIGGER
+      await incrementConcepts();
+
+      // 🎉 THE WOW FACTOR: Fire confetti and show a success toast!
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ["#3b82f6", "#10b981", "#f59e0b"], // Brand colors!
+      });
+
+      toast.success("Achievement Unlocked: +1 Concept Mastered!", {
+        icon: "🌟",
+        duration: 4000,
+      });
     } catch (err) {
       console.error("Quiz Error:", err);
+      toast.error("Failed to generate the quiz. Check the console.");
       setMessages((prev) => [
         ...prev,
-        { role: "ai", text: "Failed to generate the quiz. Check the console!" },
+        { role: "ai", text: "Failed to generate the quiz." },
       ]);
     } finally {
       setIsTyping(false);
     }
+  };
+
+  const handleLeaveLab = async () => {
+    // 1. Calculate how long they were here in milliseconds
+    const timeSpentMs = Date.now() - startTime;
+
+    // 2. Convert milliseconds into hours
+    const hoursSpent = timeSpentMs / (1000 * 60 * 60);
+
+    // 3. Send it to the database (even if it's just a tiny fraction of an hour!)
+    try {
+      await addStudyTime(hoursSpent);
+    } catch (err) {
+      console.error("Failed to save study time:", err);
+    }
+
+    // 4. Finally, navigate back to the Dashboard
+    navigate("/");
   };
 
   return (
@@ -83,12 +154,12 @@ export default function StudyLab() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Link
-            to="/"
+          <button
+            onClick={handleLeaveLab}
             className="p-2 hover:bg-slate-800 rounded-lg text-slate-400"
           >
             <ChevronLeft size={20} />
-          </Link>
+          </button>
           <h1 className="text-xl font-bold">
             Study Lab:{" "}
             <span className="text-brand-accent">
@@ -135,36 +206,53 @@ export default function StudyLab() {
 
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            
-            {/* --- REPLACED MAP FUNCTION IS HERE --- */}
             {messages.map((msg, idx) => (
-              <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${
-                    msg.role === "user" ? "bg-brand-accent text-white rounded-tr-none" : "bg-slate-800 text-slate-200 rounded-tl-none border border-slate-700"
+              <div
+                key={idx}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[85%] p-3 rounded-2xl text-sm ${
+                    msg.role === "user"
+                      ? "bg-brand-accent text-white rounded-tr-none"
+                      : "bg-slate-800 text-slate-200 rounded-tl-none border border-slate-700"
                   }`}
                 >
-                  {/* Standard Text Message */}
                   {!msg.type && msg.text}
 
-                  {/* Special Quiz Message */}
                   {msg.type === "quiz" && (
                     <div className="space-y-4">
-                      <p className="font-bold text-brand-accent border-b border-slate-700 pb-2 mb-3">🎯 Knowledge Check</p>
+                      <p className="font-bold text-brand-accent border-b border-slate-700 pb-2 mb-3">
+                        🎯 Knowledge Check
+                      </p>
                       {msg.data.map((q, qIdx) => (
-                        <div key={qIdx} className="bg-slate-900/50 p-3 rounded-xl border border-slate-700/50">
-                          <p className="font-medium text-slate-200 mb-2">{qIdx + 1}. {q.question}</p>
+                        <div
+                          key={qIdx}
+                          className="bg-slate-900/50 p-3 rounded-xl border border-slate-700/50"
+                        >
+                          <p className="font-medium text-slate-200 mb-2">
+                            {qIdx + 1}. {q.question}
+                          </p>
                           <div className="space-y-2">
                             {q.options.map((opt, oIdx) => (
-                              <button key={oIdx} className="w-full text-left p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-xs border border-slate-700">
+                              <button
+                                key={oIdx}
+                                className="w-full text-left p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-xs border border-slate-700"
+                              >
                                 {opt}
                               </button>
                             ))}
                           </div>
                           <details className="mt-3 text-xs">
-                            <summary className="cursor-pointer text-brand-accent font-medium hover:text-blue-400">View Answer</summary>
+                            <summary className="cursor-pointer text-brand-accent font-medium hover:text-blue-400">
+                              View Answer
+                            </summary>
                             <div className="mt-2 p-2 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400">
-                              <span className="font-bold">Answer:</span> {q.answer}
-                              <p className="mt-1 text-slate-400">{q.explanation}</p>
+                              <span className="font-bold">Answer:</span>{" "}
+                              {q.answer}
+                              <p className="mt-1 text-slate-400">
+                                {q.explanation}
+                              </p>
                             </div>
                           </details>
                         </div>
@@ -174,9 +262,7 @@ export default function StudyLab() {
                 </div>
               </div>
             ))}
-            {/* --- END OF REPLACED SECTION --- */}
 
-            {/* Typing Indicator */}
             {isTyping && (
               <div className="flex justify-start">
                 <div className="bg-slate-800 text-slate-400 p-3 rounded-2xl rounded-tl-none border border-slate-700 flex items-center gap-2">

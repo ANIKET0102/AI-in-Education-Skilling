@@ -1,23 +1,36 @@
 import { CheckCircle, Clock, BookOpen, Flame } from "lucide-react";
 
-const stats = [
-  {
-    label: "Concepts Mastered",
-    value: "12",
-    icon: CheckCircle,
-    color: "text-green-400",
-  },
-  { label: "Study Hours", value: "24.5h", icon: Clock, color: "text-blue-400" },
-  {
-    label: "Active Courses",
-    value: "3",
-    icon: BookOpen,
-    color: "text-purple-400",
-  },
-  { label: "Day Streak", value: "7", icon: Flame, color: "text-orange-400" },
-];
+// 1. Accept the 'data' prop from the Dashboard
+export default function StatCards({ data }) {
+  
+  // 2. Build the array using the real database numbers!
+  const stats = [
+    {
+      label: "Concepts Mastered",
+      value: data?.conceptsMastered || "0",
+      icon: CheckCircle,
+      color: "text-green-400",
+    },
+    { 
+      label: "Study Hours", 
+      value: `${data?.studyHours || "0"}h`, 
+      icon: Clock, 
+      color: "text-blue-400" 
+    },
+    {
+      label: "Active Courses",
+      value: data?.activeCourses || "0",
+      icon: BookOpen,
+      color: "text-purple-400",
+    },
+    { 
+      label: "Day Streak", 
+      value: data?.dayStreak || "0", 
+      icon: Flame, 
+      color: "text-orange-400" 
+    },
+  ];
 
-export default function StatCards() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       {stats.map((stat) => (
