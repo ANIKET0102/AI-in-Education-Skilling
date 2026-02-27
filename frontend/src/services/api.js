@@ -34,3 +34,12 @@ export const generatePlanner = (subjects) =>
   API.post("/chat/planner", { subjects });
 export const loginAPI = (formData) => API.post("/auth/login", formData);
 export const registerAPI = (formData) => API.post("/auth/register", formData);
+// ... existing exports (fetchSubjects, loginAPI, etc.)
+
+// 🚀 Fetch the saved planner for the logged-in user
+export const fetchSavedPlanner = () => API.get("/auth/planner");
+
+// 💾 Save the current planner state (including completion status)
+export const savePlannerAPI = (schedule) => API.put("/auth/planner", { schedule });
+
+

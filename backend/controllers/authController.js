@@ -74,3 +74,25 @@ exports.loginUser = async (req, res) => {
     res.status(500).json({ message: 'Server error during login', error: error.message });
   }
 };
+
+
+// 🚀 Get the saved planner from the User model
+exports.getSavedPlanner = async (req, res) => {
+  try {
+    const user = await User.findById(req.user).select('savedSchedule');
+    res.json({ schedule: user.savedSchedule || [] });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching saved planner" });
+  }
+};
+
+// 💾 Save the planner array to the User model
+exports.savePlanner = async (req, res) => {
+  try {
+    const { schedule } = req.body;
+    await User.findByIdAndUpdate(req.user, { savedSchedule: schedule });
+    res.status(200).json({ message: "Planner synced successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error saving planner" });
+  }
+};
