@@ -1,67 +1,32 @@
 const express = require("express");
 const router = express.Router();
-const Subject = require("../models/Subject");
 const upload = require("../middleware/upload");
+const { protect } = require("../middleware/authMiddleware");
+const { 
+  getSubjects, 
+  createSubject, 
+  saveMessages 
+} = require("../controllers/subjectController");
 
-// @route   POST /api/subjects
-router.post("/", upload.single("pdf"), async (req, res) => {
-  try {
-    console.log("Incoming Subject Name:", req.body.name);
-    console.log("Incoming File:", req.file);
+// 🚀 All routes below this line require a valid login token
+router.use(protect);
 
-    const { name } = req.body;
+/**
+ * @route   GET /api/subjects
+ * @desc    Fetch only the logged-in user's subjects
+ */
+router.get("/", getSubjects);
 
-    if (!name) {
-      return res.status(400).json({ error: "Subject name is required" });
-    }
+/**
+ * @route   POST /api/subjects
+ * @desc    Create a new subject with PDF upload linked to the user
+ */
+router.post("/", upload.single("pdf"), createSubject);
 
-    const newSubject = new Subject({
-      name: name,
-      pdfPath: req.file ? req.file.path : null,
-    });
-
-    await newSubject.save();
-    console.log("✅ Subject saved successfully!");
-    res.status(201).json(newSubject);
-  } catch (error) {
-    console.error("❌ CRITICAL BACKEND ERROR:", error);
-    res.status(500).json({ error: "Failed to create subject" });
-  }
-});
-
-// @route   GET /api/subjects
-router.get("/", async (req, res) => {
-  try {
-    const subjects = await Subject.find().sort({ createdAt: -1 });
-    res.json(subjects);
-  } catch (error) {
-    console.error("❌ Fetch Error:", error);
-    res.status(500).json({ error: "Server Error" });
-  }
-});
+/**
+ * @route   PUT /api/subjects/:id/messages
+ * @desc    Save chat history to a specific subject
+ */
+router.put("/:id/messages", saveMessages);
 
 module.exports = router;
-
-// @route   PUT /api/subjects/:id/messages
-// Desc     Save the chat history to a specific subject
-router.put("/:id/messages", async (req, res) => {
-  try {
-    const { messages } = req.body;
-
-    // Find the subject by its ID and update its messages array
-    const updatedSubject = await Subject.findByIdAndUpdate(
-      req.params.id,
-      { messages: messages },
-      { new: true }, // Return the newly updated document
-    );
-
-    if (!updatedSubject) {
-      return res.status(404).json({ error: "Subject not found" });
-    }
-
-    res.json(updatedSubject);
-  } catch (error) {
-    console.error("❌ Save Messages Error:", error);
-    res.status(500).json({ error: "Server Error while saving messages" });
-  }
-});

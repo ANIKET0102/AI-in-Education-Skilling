@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 5000;
 
 const subjectRoutes = require("./routes/subjectRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const authRoutes = require('./routes/authRoutes');
 
 // Middleware
 app.use(cors());
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use("/api/subjects", subjectRoutes);
 app.use("/api/chat", chatRoutes);
 app.use('/api/stats', require('./routes/statRoutes'));
+app.use('/api/auth', authRoutes);
 
 
 console.log("DEBUG: Connection String is ->", process.env.MONGO_URI);

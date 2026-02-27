@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState, useContext } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
 import {
   LayoutDashboard,
   BookOpen,
@@ -7,31 +8,34 @@ import {
   GraduationCap,
   Menu,
   X,
-  Sun,
+  LogOut,
   Moon,
+  Sun
 } from "lucide-react";
 import Button from "../shared/Button";
 
 export default function Sidebar() {
+  const { user, logout } = useContext(AuthContext);
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
-  // 🚀 Safe Local Storage Initialization
+  // Theme State Logic
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem("theme") === "dark";
+    return document.documentElement.classList.contains("dark");
   });
 
-  // Apply classes and save to storage
-  useEffect(() => {
-    const root = document.documentElement;
+  const toggleTheme = () => {
     if (isDarkMode) {
-      root.classList.add('dark');
-      localStorage.setItem("theme", "dark");
-    } else {
-      root.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
       localStorage.setItem("theme", "light");
+      setIsDarkMode(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+      setIsDarkMode(true);
     }
-  }, [isDarkMode]);
+  };
 
   const menuItems = [
     { name: "Dashboard", path: "/", icon: LayoutDashboard },
@@ -39,78 +43,92 @@ export default function Sidebar() {
     { name: "Planner", path: "/planner", icon: Calendar },
   ];
 
+  const handleLogout = () => {
+    logout();
+    navigate("/auth");
+  };
+
   return (
     <>
-      {/* Mobile Hamburger Button */}
-      <Button
-        variant="primary"
+      {/* Mobile Toggle Button */}
+      <button
         onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden fixed top-4 left-4 z-50 p-2 shadow-lg"
+        className="md:hidden fixed top-4 left-4 z-[60] p-2 bg-slate-900 border border-slate-700 rounded-lg text-white"
       >
         {isOpen ? <X size={24} /> : <Menu size={24} />}
-      </Button>
+      </button>
 
-      {/* Dark Overlay with subtle blur */}
-      {isOpen && (
-        <div
-          className="md:hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-40 transition-all duration-300"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-
-      {/* Sidebar Container */}
-      <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 w-64 border-r border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-all duration-300 ease-in-out flex flex-col ${
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        }`}
-      >
+      <aside className={`fixed md:static inset-y-0 left-0 z-50 w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex flex-col h-screen transition-transform duration-300 ${
+        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+      }`}>
         
-        {/* MasteryPath Logo */}
-        <div className="flex items-center gap-3 text-brand-accent mb-8 mt-14 md:mt-0 px-6">
+        {/* 1. Branding */}
+        <div className="flex items-center gap-3 text-brand-accent px-6 py-8 flex-shrink-0">
           <GraduationCap size={32} />
-          <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white transition-colors duration-300">
-            MasteryPath
-          </span>
+          <span className="text-xl font-bold text-slate-900 dark:text-white">MasteryPath</span>
         </div>
 
-        {/* Links section */}
-        <div className="space-y-2 flex-1 px-4">
+        {/* 2. Navigation Section */}
+        <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
           {menuItems.map((item) => {
-            const Icon = item.icon;
             const isActive = location.pathname === item.path;
             return (
               <Link
                 key={item.name}
                 to={item.path}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 transform ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${
                   isActive
-                    ? "bg-blue-50 text-brand-accent dark:bg-slate-800 dark:text-white font-medium"
-                    : "text-slate-900 hover:bg-gray-100 hover:text-slate-900 dark:text-white dark:hover:bg-slate-800 dark:hover:text-white hover:scale-105"
+                    ? "bg-brand-accent/10 text-brand-accent"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-900"
                 }`}
               >
-                <Icon size={20} />
-                <span className="font-medium">{item.name}</span>
+                <item.icon size={20} />
+                <span>{item.name}</span>
               </Link>
             );
           })}
-        </div>
+        </nav>
 
-        {/* THEME TOGGLE BUTTON AT BOTTOM */}
-        <div className="p-4 border-t border-gray-200 dark:border-slate-800">
+        {/* 3. Footer Section (Theme + Profile + Logout) */}
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex-shrink-0 space-y-4">
+          
+          {/* Theme Toggle */}
           <Button
             variant="secondary"
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="flex items-center justify-between w-full px-4 py-3"
+            onClick={toggleTheme}
+            className="flex items-center justify-between w-full px-4 py-2 text-sm"
           >
-            <div className="flex items-center gap-3">
-              {isDarkMode ? <Moon size={20} className="text-brand-accent" /> : <Sun size={20} className="text-orange-500" />}
-              <span>{isDarkMode ? "Dark Mode" : "Light Mode"}</span>
+            <div className="flex items-center gap-2">
+              {isDarkMode ? <Moon size={16} className="text-brand-accent" /> : <Sun size={16} className="text-orange-500" />}
+              <span>{isDarkMode ? "Dark" : "Light"}</span>
             </div>
-            <div className={`w-10 h-6 rounded-full p-1 transition-colors ${isDarkMode ? 'bg-brand-accent' : 'bg-gray-300'}`}>
-              <div className={`bg-white w-4 h-4 rounded-full transition-transform ${isDarkMode ? 'translate-x-4' : 'translate-x-0'}`}></div>
+            <div className={`w-8 h-4 rounded-full p-0.5 transition-colors ${isDarkMode ? 'bg-brand-accent' : 'bg-gray-300'}`}>
+              <div className={`bg-white w-3 h-3 rounded-full transition-transform ${isDarkMode ? 'translate-x-4' : 'translate-x-0'}`}></div>
             </div>
           </Button>
+
+          {/* Profile Info */}
+          <div className="flex items-center gap-3 px-2">
+            <div className="w-10 h-10 rounded-full bg-brand-accent/10 border border-brand-accent/20 flex items-center justify-center text-brand-accent font-bold uppercase">
+              {user?.username?.charAt(0) || "U"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                {user?.username || "Scholar"}
+              </p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">B.Tech CSE</p>
+            </div>
+          </div>
+          
+          {/* Logout */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-sm font-bold"
+          >
+            <LogOut size={18} />
+            Logout Session
+          </button>
         </div>
       </aside>
     </>

@@ -17,11 +17,11 @@ export default function Planner() {
   const [subjects, setSubjects] = useState([]);
   const [schedule, setSchedule] = useState([]);
 
-  // Load subjects on mount
   useEffect(() => {
     const loadSubjects = async () => {
       try {
         const res = await fetchSubjects();
+        // 🚀 Ensure we only map subjects that actually exist for THIS user
         setSubjects(res.data.map((sub) => sub.name));
       } catch (error) {
         console.error("Failed to load subjects for planner", error);
@@ -31,10 +31,16 @@ export default function Planner() {
   }, []);
 
   const handleGenerateSchedule = async () => {
+    if (subjects.length === 0) {
+      toast.error("Upload some subjects first!");
+      return;
+    }
+
     setIsGenerating(true);
-    const loadingToast = toast.loading("AI is analyzing your subjects...");
+    const loadingToast = toast.loading("AI is analyzing your specific subjects...");
 
     try {
+      // 🚀 We send ONLY this user's subjects to the AI
       const response = await generatePlanner(subjects);
       setSchedule(response.data.schedule);
       toast.success("Schedule generated!", { id: loadingToast });
@@ -54,11 +60,10 @@ export default function Planner() {
 
   const toggleTask = (id) => {
     const newSchedule = schedule.map((task) =>
-      task.id === id ? { ...task, completed: !task.completed } : task,
+      task.id === id ? { ...task, completed: !task.completed } : task
     );
     setSchedule(newSchedule);
 
-    // 🚀 CELEBRATION TRIGGER: If everything is completed after this toggle
     const total = newSchedule.length;
     const completed = newSchedule.filter((t) => t.completed).length;
     if (total > 0 && completed === total) {
@@ -73,8 +78,7 @@ export default function Planner() {
   };
 
   const completedCount = schedule.filter((t) => t.completed).length;
-  const progressPercentage =
-    schedule.length > 0
+  const progressPercentage = schedule.length > 0
       ? Math.round((completedCount / schedule.length) * 100)
       : 0;
 
@@ -82,6 +86,7 @@ export default function Planner() {
     <div className="max-w-6xl mx-auto pb-10">
       <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
+          {/* 🚀 FIXED: Specific slate-900 for Light Mode visibility */}
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-3 transition-colors duration-300">
             <Calendar className="text-brand-accent" size={32} />
             Your Study Planner
@@ -92,16 +97,12 @@ export default function Planner() {
         </div>
 
         <Button onClick={handleGenerateSchedule} disabled={isGenerating}>
-          {isGenerating ? (
-            <Loader2 size={18} className="animate-spin" />
-          ) : (
-            <Sparkles size={18} />
-          )}
+          {isGenerating ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
           {isGenerating ? "Building..." : "Auto-Generate with AI"}
         </Button>
       </header>
 
-      {/* 🚀 FIXED PROGRESS BAR */}
+      {/* 🚀 FIXED PROGRESS BAR: Added explicit height and transition properties */}
       {schedule.length > 0 && (
         <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 p-6 rounded-2xl mb-8 shadow-sm transition-colors duration-300">
           <div className="flex justify-between items-center mb-3">
@@ -113,15 +114,17 @@ export default function Planner() {
             </span>
           </div>
 
-          {/* Outer Track */}
-          <div className="w-full bg-gray-200 dark:bg-slate-900 rounded-full h-4 overflow-hidden">
-            {/* Animated Fill */}
+          <div className="w-full bg-gray-200 dark:bg-slate-900 rounded-full h-5 border border-gray-300 dark:border-slate-700 overflow-hidden relative">
             <div
-              className="bg-brand-accent h-full rounded-full transition-[width] duration-700 ease-in-out"
+              className="bg-brand-accent h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(59,130,246,0.5)]"
               style={{
                 width: `${progressPercentage}%`,
+                minWidth: progressPercentage > 0 ? "20px" : "0%",
               }}
-            />
+            >
+              {/* Glossy overlay to ensure the bar is visible even in bright light mode */}
+              <div className="h-full w-full bg-white/20 blur-[1px]"></div>
+            </div>
           </div>
         </div>
       )}
@@ -129,16 +132,9 @@ export default function Planner() {
       {/* Empty State */}
       {schedule.length === 0 && !isGenerating && (
         <div className="flex flex-col items-center justify-center p-12 border border-gray-300 dark:border-slate-700 border-dashed rounded-2xl bg-gray-50 dark:bg-slate-800/20 text-center transition-colors">
-          <Calendar
-            className="text-slate-400 dark:text-slate-500 mb-4 opacity-50"
-            size={48}
-          />
-          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-300 mb-2">
-            No Schedule Yet
-          </h3>
-          <p className="text-slate-500 max-w-md">
-            Click Auto-Generate to have AI build a 5-day study plan.
-          </p>
+          <Calendar className="text-slate-400 dark:text-slate-500 mb-4 opacity-50" size={48} />
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-300 mb-2">No Schedule Yet</h3>
+          <p className="text-slate-500 max-w-md">Click Auto-Generate to have AI build a 5-day study plan.</p>
         </div>
       )}
 
@@ -162,22 +158,15 @@ export default function Planner() {
                 onClick={() => toggleTask(task.id)}
                 className="text-slate-400 hover:text-green-500 dark:hover:text-green-400 p-1"
               >
-                {task.completed ? (
-                  <CheckCircle className="text-green-500" size={24} />
-                ) : (
-                  <Circle size={24} />
-                )}
+                {task.completed ? <CheckCircle className="text-green-500" size={24} /> : <Circle size={24} />}
               </Button>
             </div>
 
-            <h3
-              className={`text-xl font-bold mb-1 ${task.completed ? "text-slate-400 dark:text-slate-500 line-through" : "text-slate-900 dark:text-slate-100"}`}
-            >
+            {/* 🚀 FIXED: Specific slate-900 for subject text in Light Mode */}
+            <h3 className={`text-xl font-bold mb-1 transition-colors ${task.completed ? "text-slate-400 dark:text-slate-500 line-through" : "text-slate-900 dark:text-slate-100"}`}>
               {task.subject}
             </h3>
-            <p
-              className={`text-sm mb-4 ${task.completed ? "text-slate-500" : "text-slate-600 dark:text-slate-400"}`}
-            >
+            <p className={`text-sm mb-4 transition-colors ${task.completed ? "text-slate-400" : "text-slate-600 dark:text-slate-400"}`}>
               {task.topic}
             </p>
 
