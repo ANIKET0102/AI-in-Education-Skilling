@@ -11,20 +11,22 @@ export default function SubjectGrid({ subjects, onAddClick }) {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">Your Subjects</h2>
+      <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-white transition-colors duration-300">
+        Your Subjects
+      </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {subjects.map((sub) => (
           <div
             key={sub._id}
             onClick={() => handleCardClick(sub)}
-            className="bg-slate-800/50 border border-slate-700 p-5 rounded-xl hover:border-brand-accent transition cursor-pointer group flex flex-col h-full"
+            className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 p-5 rounded-xl hover:border-brand-accent dark:hover:border-brand-accent transition-all duration-300 cursor-pointer group flex flex-col h-full shadow-sm dark:shadow-none"
           >
             <div className="flex-1">
-              <h3 className="text-lg font-medium mb-2 group-hover:text-brand-accent transition-colors">
+              <h3 className="text-lg font-medium mb-2 text-slate-900 dark:text-white group-hover:text-brand-accent dark:group-hover:text-brand-accent transition-colors">
                 {sub.name}
               </h3>
 
-              <div className="flex items-center gap-4 text-sm text-slate-400 mt-4">
+              <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mt-4 transition-colors duration-300">
                 <div className="flex items-center gap-1.5">
                   <Book size={16} />
                   <span>{sub.pdfPath ? "PDF Uploaded" : "No PDF"}</span>
@@ -32,7 +34,7 @@ export default function SubjectGrid({ subjects, onAddClick }) {
               </div>
             </div>
 
-            <div className="mt-6 flex items-center justify-between text-sm text-slate-500 group-hover:text-brand-accent transition-colors">
+            <div className="mt-6 flex items-center justify-between text-sm text-slate-400 dark:text-slate-500 group-hover:text-brand-accent dark:group-hover:text-brand-accent transition-colors duration-300">
               <span>Enter Study Lab</span>
               <ArrowRight
                 size={16}
@@ -45,7 +47,7 @@ export default function SubjectGrid({ subjects, onAddClick }) {
         {/* Add New Subject Card */}
         <div
           onClick={onAddClick}
-          className="border-2 border-dashed border-slate-700 p-5 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-slate-300 hover:border-slate-500 transition cursor-pointer min-h-[160px]"
+          className="border-2 border-dashed border-gray-300 dark:border-slate-700 p-5 rounded-xl flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:border-gray-400 dark:hover:border-slate-500 hover:bg-gray-50 dark:hover:bg-transparent transition-all duration-300 cursor-pointer min-h-[160px]"
         >
           <span className="text-3xl mb-1">+</span>
           <span className="text-sm font-medium">Add New Subject</span>

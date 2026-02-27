@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+body {
+  /* Changed from bg-gray-50 to a soft blue-tinted slate */
+  @apply bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100;
+}
+
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}

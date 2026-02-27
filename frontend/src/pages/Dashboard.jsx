@@ -48,14 +48,17 @@ export default function Dashboard() {
     <div className="max-w-6xl mx-auto">
       <header className="mb-8 flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold">Welcome back, Aniket!</h1>
-          <p className="text-slate-400">
+          {/* Updated text colors here to flip between light and dark! */}
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white transition-colors duration-300">
+            Welcome back, Aniket!
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 transition-colors duration-300">
             Ready to master some new concepts today?
           </p>
         </div>
       </header>
 
-      {/* We will pass the stats into here in the next step */}
+      {/* Passing the dynamic stats data down to the cards! */}
       <StatCards data={stats} />
 
       {/* Pass subjects down to the grid */}
