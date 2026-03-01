@@ -12,6 +12,7 @@ API.interceptors.request.use((req) => {
 });
 
 export const fetchSubjects = () => API.get("/subjects");
+export const fetchSubjectById = (id) => API.get(`/subjects/${id}`);
 
 // Updated for file uploads
 export const createSubject = (formData) =>

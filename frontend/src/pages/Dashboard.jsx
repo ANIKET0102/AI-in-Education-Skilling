@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react"; 
+import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import StatCards from "../components/dashboard/StatCards";
 import SubjectGrid from "../components/dashboard/SubjectGrid";
@@ -60,8 +60,8 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Passing the dynamic stats data down to the cards! */}
-      <StatCards data={stats} />
+      {/* Passing the dynamic stats data down to the cards! Active courses is dynamically calculated from the subjects list */}
+      <StatCards data={{ ...stats, activeCourses: subjects.length }} />
 
       {/* Pass subjects down to the grid */}
       <SubjectGrid

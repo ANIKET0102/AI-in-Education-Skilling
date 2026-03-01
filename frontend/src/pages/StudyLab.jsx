@@ -10,6 +10,7 @@ import {
   incrementConcepts,
   saveChatHistory,
   addStudyTime,
+  fetchSubjectById,
 } from "../services/api";
 
 export default function StudyLab() {
@@ -19,18 +20,26 @@ export default function StudyLab() {
   const [startTime] = useState(Date.now());
   const [elapsedMs, setElapsedMs] = useState(0); // keep track of elapsed time
 
-  // 1. Load history if it exists, otherwise show the default greeting
-  const [messages, setMessages] = useState(() => {
-    if (subject?.messages && subject.messages.length > 0) {
-      return subject.messages;
+  // 1. Initial history starts with just a welcome message to avoid duplication
+  const [messages, setMessages] = useState([
+    {
+      role: "ai",
+      text: `Hello Aniket! Let's master ${subject?.name || "this subject"} together. What concept should we focus on?`,
+    },
+  ]);
+
+  // 1.5. Fetch the absolutely newest history from DB on load to fix the dashboard caching bug
+  useEffect(() => {
+    if (subject?._id) {
+      fetchSubjectById(subject._id)
+        .then((res) => {
+          if (res.data?.messages?.length > 0) {
+            setMessages(res.data.messages);
+          }
+        })
+        .catch((err) => console.error("Could not fetch latest subject history", err));
     }
-    return [
-      {
-        role: "ai",
-        text: `Hello Aniket! Let's master ${subject?.name || "this subject"} together. What concept should we focus on?`,
-      },
-    ];
-  });
+  }, [subject?._id]);
 
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -61,10 +70,14 @@ export default function StudyLab() {
   const updateHistory = async (newMessagesArray) => {
     if (subject?._id) {
       try {
+        console.log("Saving new history length to DB:", newMessagesArray.length);
         await saveChatHistory(subject._id, newMessagesArray);
       } catch (err) {
         console.error("Failed to save chat history:", err);
+        toast.error("Failed to save your messages to the database.");
       }
+    } else {
+      console.warn("No subject._id available to save chat history to!");
     }
   };
 
@@ -147,18 +160,7 @@ export default function StudyLab() {
   };
 
   const handleLeaveLab = async () => {
-    const timeSpentMs = elapsedMs || (Date.now() - startTime);
-    const hoursSpent = timeSpentMs / (1000 * 60 * 60);
-
-    try {
-      // Assuming addStudyTime is imported or defined elsewhere
-      if (typeof addStudyTime === 'function') {
-        await addStudyTime(hoursSpent);
-      }
-    } catch (err) {
-      console.error("Failed to save study time:", err);
-    }
-
+    // Global timer in AuthContext now handles time tracking
     navigate("/");
   };
 
@@ -216,7 +218,7 @@ export default function StudyLab() {
 
         {/* Right Side: AI Coach Chat */}
         <div className="w-full lg:w-[450px] flex flex-col bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-lg dark:shadow-2xl transition-colors duration-300">
-          
+
           {/* Chat Header */}
           <div className="p-4 border-b border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 flex items-center gap-2 transition-colors duration-300">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
@@ -233,11 +235,10 @@ export default function StudyLab() {
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[85%] p-3 rounded-2xl text-sm transition-colors duration-300 ${
-                    msg.role === "user"
-                      ? "bg-brand-accent text-white rounded-tr-none shadow-sm"
-                      : "bg-gray-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none border border-gray-200 dark:border-slate-700"
-                  }`}
+                  className={`max-w-[85%] p-3 rounded-2xl text-sm transition-colors duration-300 ${msg.role === "user"
+                    ? "bg-brand-accent text-white rounded-tr-none shadow-sm"
+                    : "bg-gray-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none border border-gray-200 dark:border-slate-700"
+                    }`}
                 >
                   {!msg.type && msg.text}
 

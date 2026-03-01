@@ -19,7 +19,7 @@ export default function SubjectGrid({ subjects, onAddClick }) {
           <div
             key={sub._id}
             onClick={() => handleCardClick(sub)}
-            className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 p-5 rounded-xl hover:border-brand-accent dark:hover:border-brand-accent transition-all duration-300 cursor-pointer group flex flex-col h-full shadow-sm dark:shadow-none"
+            className="bg-white/80 backdrop-blur-sm dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-6 rounded-2xl hover:border-brand-accent dark:hover:border-brand-accent shadow-lg shadow-blue-900/5 dark:shadow-none hover:shadow-xl hover:shadow-brand-accent/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col h-full"
           >
             <div className="flex-1">
               <h3 className="text-lg font-medium mb-2 text-slate-900 dark:text-white group-hover:text-brand-accent dark:group-hover:text-brand-accent transition-colors">

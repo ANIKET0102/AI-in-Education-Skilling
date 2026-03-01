@@ -2,10 +2,11 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../middleware/upload");
 const { protect } = require("../middleware/authMiddleware");
-const { 
-  getSubjects, 
-  createSubject, 
-  saveMessages 
+const {
+  getSubjects,
+  getSubjectById,
+  createSubject,
+  saveMessages
 } = require("../controllers/subjectController");
 
 // 🚀 All routes below this line require a valid login token
@@ -16,6 +17,12 @@ router.use(protect);
  * @desc    Fetch only the logged-in user's subjects
  */
 router.get("/", getSubjects);
+
+/**
+ * @route   GET /api/subjects/:id
+ * @desc    Fetch a specific subject by ID
+ */
+router.get("/:id", getSubjectById);
 
 /**
  * @route   POST /api/subjects

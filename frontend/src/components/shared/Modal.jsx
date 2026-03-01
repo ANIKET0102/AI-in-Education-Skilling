@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { X, Upload, Plus, FileText } from "lucide-react"; 
+import { X, Upload, Plus, FileText } from "lucide-react";
 import { createSubject } from "../../services/api";
 import Button from "./Button";
 
 export default function Modal({ isOpen, onClose, onSubjectAdded }) {
   const [name, setName] = useState("");
-  const [file, setFile] = useState(null); 
+  const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -16,7 +16,7 @@ export default function Modal({ isOpen, onClose, onSubjectAdded }) {
 
     const formData = new FormData();
     formData.append("name", name);
-    formData.append("pdf", file); 
+    formData.append("pdf", file);
 
     setLoading(true);
     try {
@@ -35,12 +35,12 @@ export default function Modal({ isOpen, onClose, onSubjectAdded }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity duration-300">
-      
+
       {/* Modal Container */}
-      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden transition-colors duration-300">
-        
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md rounded-2xl shadow-2xl shadow-blue-900/10 dark:shadow-none overflow-hidden transition-colors duration-300">
+
         {/* Modal Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between bg-gray-50 dark:bg-slate-800/50 transition-colors duration-300">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 backdrop-blur-md dark:bg-slate-800/50 transition-colors duration-300">
           <h3 className="font-semibold text-lg text-slate-900 dark:text-white">Add New Subject</h3>
           <Button
             variant="ghost"
@@ -53,7 +53,7 @@ export default function Modal({ isOpen, onClose, onSubjectAdded }) {
 
         {/* Modal Body */}
         <div className="p-6 space-y-4">
-          
+
           {/* Subject Name Input */}
           <div>
             <label className="block text-sm text-slate-600 dark:text-slate-400 mb-1 transition-colors duration-300">

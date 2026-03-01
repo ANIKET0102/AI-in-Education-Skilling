@@ -19,7 +19,7 @@ export default function Button({
 
   const variants = {
     primary:
-      'bg-brand-accent text-white hover:bg-blue-600 dark:bg-brand-accent dark:hover:bg-blue-700',
+      'bg-brand-accent/20 text-slate-900 cursor-pointer hover:bg-brand-accent dark:bg-brand-accent dark:text-white dark:hover:bg-blue-700',
     secondary:
       'bg-gray-100 text-slate-900 hover:bg-gray-200 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700',
     ghost:

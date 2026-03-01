@@ -15,7 +15,7 @@ export default function Auth() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const loadingToast = toast.loading(isLogin ? "Signing in..." : "Creating profile...");
-    
+
     try {
       const res = isLogin ? await loginAPI(formData) : await registerAPI(formData);
       login(res.data);
@@ -27,7 +27,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+    <div className="dark min-h-screen bg-slate-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl">
         <div className="flex flex-col items-center mb-8">
           <div className="bg-brand-accent/10 p-4 rounded-2xl mb-4">
@@ -58,14 +58,14 @@ export default function Auth() {
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
           </div>
-          
+
           <Button type="submit" className="w-full py-4 mt-4">
             <Sparkles size={18} />
             {isLogin ? "Sign In" : "Create Account"}
           </Button>
         </form>
 
-        <button 
+        <button
           onClick={() => setIsLogin(!isLogin)}
           className="w-full mt-6 text-sm text-slate-500 hover:text-brand-accent transition"
         >

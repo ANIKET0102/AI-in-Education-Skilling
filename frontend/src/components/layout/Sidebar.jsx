@@ -58,10 +58,9 @@ export default function Sidebar() {
         {isOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
-      <aside className={`fixed md:static inset-y-0 left-0 z-50 w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex flex-col h-screen transition-transform duration-300 ${
-        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-      }`}>
-        
+      <aside className={`fixed md:static inset-y-0 left-0 z-50 w-64 border-r border-slate-200 dark:border-slate-800 bg-white/80 backdrop-blur-xl dark:bg-slate-950 flex flex-col h-screen shadow-lg shadow-blue-900/5 dark:shadow-none transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        }`}>
+
         {/* 1. Branding */}
         <div className="flex items-center gap-3 text-brand-accent px-6 py-8 flex-shrink-0">
           <GraduationCap size={32} />
@@ -77,11 +76,10 @@ export default function Sidebar() {
                 key={item.name}
                 to={item.path}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${
-                  isActive
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${isActive
                     ? "bg-brand-accent/10 text-brand-accent"
                     : "text-slate-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-900"
-                }`}
+                  }`}
               >
                 <item.icon size={20} />
                 <span>{item.name}</span>
@@ -92,7 +90,7 @@ export default function Sidebar() {
 
         {/* 3. Footer Section (Theme + Profile + Logout) */}
         <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex-shrink-0 space-y-4">
-          
+
           {/* Theme Toggle */}
           <Button
             variant="secondary"
@@ -120,7 +118,7 @@ export default function Sidebar() {
               <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">B.Tech CSE</p>
             </div>
           </div>
-          
+
           {/* Logout */}
           <button
             onClick={handleLogout}

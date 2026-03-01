@@ -9,7 +9,12 @@ const subjectSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  messages: [{ role: String, content: String }],
+  messages: [{
+    role: String,
+    text: String,
+    type: String, // 'quiz' etc
+    data: mongoose.Schema.Types.Mixed // For quiz data
+  }],
   createdAt: { type: Date, default: Date.now }
 });
 

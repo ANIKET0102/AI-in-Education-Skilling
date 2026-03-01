@@ -7,10 +7,26 @@ const Subject = require('../models/Subject');
 exports.getSubjects = async (req, res) => {
   try {
     // req.user is populated by your protect middleware
-    const subjects = await Subject.find({ user: req.user }); 
+    const subjects = await Subject.find({ user: req.user });
     res.json(subjects);
   } catch (error) {
     res.status(500).json({ message: "Error fetching your subjects" });
+  }
+};
+
+/**
+ * @desc    Get a specific subject belonging to the logged-in user
+ * @route   GET /api/subjects/:id
+ */
+exports.getSubjectById = async (req, res) => {
+  try {
+    const subject = await Subject.findOne({ _id: req.params.id, user: req.user });
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+    res.json(subject);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching the subject" });
   }
 };
 
@@ -44,7 +60,7 @@ exports.createSubject = async (req, res) => {
 exports.saveMessages = async (req, res) => {
   try {
     const { messages } = req.body;
-    
+
     // Find the subject but ensure it belongs to the logged-in user
     const updatedSubject = await Subject.findOneAndUpdate(
       { _id: req.params.id, user: req.user },

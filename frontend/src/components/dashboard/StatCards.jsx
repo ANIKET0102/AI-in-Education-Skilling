@@ -5,12 +5,12 @@ export default function StatCards({ data }) {
   // Helper function to convert decimal hours to Hr:M:S format
   const formatStudyTime = (decimalHours) => {
     if (!decimalHours) return "0h 0m 0s";
-    
+
     const totalSeconds = Math.round(decimalHours * 3600);
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
-    
+
     return `${hours}h ${minutes}m ${seconds}s`;
   };
 
@@ -47,7 +47,7 @@ export default function StatCards({ data }) {
       {stats.map((stat) => (
         <div
           key={stat.label}
-          className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 shadow-sm dark:shadow-none p-6 rounded-xl transition-colors duration-300"
+          className="bg-white/80 backdrop-blur-sm dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 shadow-lg shadow-purple-900/5 dark:shadow-none hover:shadow-xl hover:shadow-brand-accent/10 hover:-translate-y-1 p-6 rounded-2xl transition-all duration-300"
         >
           <div className="flex items-center justify-between mb-2">
             <stat.icon className={stat.color} size={24} />

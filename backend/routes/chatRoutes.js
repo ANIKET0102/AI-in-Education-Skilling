@@ -72,7 +72,8 @@ router.post("/planner", async (req, res) => {
         ? subjects.join(", ")
         : "General Computer Science, Programming";
 
-    const promptText = `You are an expert study planner. Create a 5-day study schedule focusing on these specific subjects: ${subjectList}. 
+    const promptText = `You are an expert study planner. Create a 5-day study schedule. 
+    CRITICAL RULE: You MUST ONLY use the exact subjects provided here: "${subjectList}". Do NOT add any other subjects, themes, or generalized topics whatsoever. If there is only one subject, focus the entire schedule on different sub-topics of that one subject.
     Return the result STRICTLY as a raw JSON array of objects. Do not use markdown formatting or backticks. 
     Make sure each object has this exact schema: [{"id": 1, "day": "Monday", "subject": "Subject Name", "topic": "Specific Sub-topic", "time": "2 Hours", "completed": false}]`;
 

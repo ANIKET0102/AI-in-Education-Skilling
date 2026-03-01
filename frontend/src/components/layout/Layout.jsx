@@ -38,7 +38,7 @@ export default function Layout() {
 
   return (
     // Notice the updated classes here! We set light defaults, and use dark: for the dark mode colors
-    <div className="min-h-screen bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 flex">
+    <div className="min-h-screen bg-gradient-to-b from-white to-blue-50/80 text-slate-900 dark:bg-slate-950 dark:bg-none dark:text-slate-100 transition-colors duration-300 flex">
       {/* Sidebar */}
       <Sidebar />
 
