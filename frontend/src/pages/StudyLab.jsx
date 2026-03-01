@@ -44,8 +44,9 @@ export default function StudyLab() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
+  const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const pdfUrl = subject?.pdfPath
-    ? `http://localhost:5000/${subject.pdfPath.replace(/\\/g, "/")}`
+    ? `${baseUrl}/${subject.pdfPath.replace(/\\/g, "/")}`
     : null;
 
   // update elapsed time every second
